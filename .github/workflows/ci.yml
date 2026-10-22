@@ -1,0 +1,116 @@
+# Typecheck, tests, build and package checks; the built package smoke-tested
+# on every supported Node and in an edge runtime; and the API contract
+# checked against the app (dalisraieb/pricing-engine, private).
+#
+# The contract job needs a repository secret CROSS_REPO_TOKEN: a fine-grained
+# token with "Contents: read-only" on dalisraieb/pricing-engine and nothing
+# else. Pull requests from forks don't get secrets, so the job is skipped
+# for them (a maintainer's PR or the nightly run checks it).
+#
+# Nightly: the contract against the app's master, so an API change that the
+# SDK hasn't followed fails here even when nobody touches the SDK.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "17 5 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - run: npm run lint:package
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist
+          retention-days: 3
+
+  smoke-node:
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [18, 20, 22]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+      # No install: the smoke tests import the package by its own name
+      # (dist/ through package.json "exports") and use only Node built-ins.
+      - run: node smoke/node.mjs
+      - run: node smoke/node.cjs
+
+  smoke-edge:
+    needs: check
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist
+      - run: node smoke/edge.mjs
+
+  contract:
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: pricerules-node
+      - uses: actions/checkout@v4
+        with:
+          repository: dalisraieb/pricing-engine
+          ref: master
+          token: ${{ secrets.CROSS_REPO_TOKEN }}
+          path: price
+          sparse-checkout: contract
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: pricerules-node/package-lock.json
+      - name: Install
+        working-directory: pricerules-node
+        run: npm ci
+      - name: The SDK's contract is the app's
+        working-directory: pricerules-node
+        env:
+          PRICE_REPO: ${{ github.workspace }}/price
+        run: npm run sync:contract -- --check

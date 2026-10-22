@@ -1,0 +1,9 @@
+{
+  // Tests, scripts and the generated contract fixtures, with Node's types.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": ["node"],
+    "verbatimModuleSyntax": false
+  },
+  "include": ["src", "tests", "scripts", "tsup.config.ts"]
+}

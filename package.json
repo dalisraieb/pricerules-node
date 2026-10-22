@@ -1,0 +1,67 @@
+{
+  "name": "pricerules",
+  "version": "0.1.0",
+  "description": "Official TypeScript SDK for the PriceRules API: resolve customer-specific prices from your server.",
+  "license": "MIT",
+  "author": "PriceRules",
+  "homepage": "https://pricerules.app/docs/sdk",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dalisraieb/pricerules-node.git"
+  },
+  "bugs": "https://github.com/dalisraieb/pricerules-node/issues",
+  "keywords": [
+    "pricerules",
+    "pricing",
+    "b2b",
+    "customer-pricing",
+    "price-resolution",
+    "sdk"
+  ],
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.cts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "CHANGELOG.md"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.test.json",
+    "test": "tsx --test \"tests/**/*.test.ts\"",
+    "lint:package": "publint --strict && attw --pack . --profile node16",
+    "smoke": "node smoke/node.mjs && node smoke/node.cjs && node smoke/edge.mjs",
+    "check": "npm run typecheck && npm test && npm run build && npm run lint:package && npm run smoke",
+    "sync:contract": "tsx scripts/sync-contract.ts",
+    "version:sync": "tsx scripts/sync-version.ts",
+    "version": "npm run version:sync && git add src/version.ts",
+    "prepublishOnly": "npm run check"
+  },
+  "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.5",
+    "@types/node": "^22.19.0",
+    "edge-runtime": "^4.0.1",
+    "publint": "^0.3.25",
+    "tsup": "^8.5.1",
+    "tsx": "^4.23.15",
+    "typescript": "~5.9.3"
+  }
+}

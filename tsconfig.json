@@ -1,0 +1,21 @@
+{
+  // The SDK's own code. No Node types, so nothing Node-only slips into code
+  // that runs on the edge; DOM only for the globals every runtime has
+  // (AbortController, setTimeout). Runtime-specific globals are read through
+  // globalThis in src/runtime.ts.
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "types": [],
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": false,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+    "skipLibCheck": true,
+    "noEmit": true
+  },
+  "include": ["src"]
+}

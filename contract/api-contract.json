@@ -1,0 +1,1067 @@
+{
+  "contract_version": 1,
+  "match_reasons": [
+    "MOST_SPECIFIC_RULE",
+    "CUSTOMER_GROUP_SKU_RULE",
+    "SKU_LEVEL_RULE",
+    "CUSTOMER_PRODUCT_GROUP_RULE",
+    "CUSTOMER_GROUP_PRODUCT_GROUP_RULE",
+    "PRODUCT_GROUP_RULE",
+    "CUSTOMER_LEVEL_RULE",
+    "CUSTOMER_GROUP_RULE",
+    "DEFAULT_RULE",
+    "LOWEST_PRICE_WINS",
+    "NO_RULE",
+    "RULE_EXCEEDS_BASE_PRICE",
+    "PRODUCT_NOT_FOUND"
+  ],
+  "warning_codes": [
+    "CUSTOMER_NOT_FOUND"
+  ],
+  "pricing_modes": [
+    "business",
+    "best_price"
+  ],
+  "rule_types": [
+    "fixed",
+    "discount",
+    "amount_off"
+  ],
+  "skip_reasons": [
+    "AMOUNT_EXCEEDS_BASE_PRICE"
+  ],
+  "customer_target_types": [
+    "customer",
+    "customer_group",
+    "everyone"
+  ],
+  "product_target_types": [
+    "sku",
+    "product_group",
+    "all"
+  ],
+  "error_codes": [
+    {
+      "code": "INVALID_JSON",
+      "status": 400
+    },
+    {
+      "code": "VALIDATION_ERROR",
+      "status": 400
+    },
+    {
+      "code": "UNAUTHORIZED",
+      "status": 401
+    },
+    {
+      "code": "MAX_PRODUCTS_EXCEEDED",
+      "status": 422
+    },
+    {
+      "code": "MAX_REQUESTS_EXCEEDED",
+      "status": 422
+    },
+    {
+      "code": "RATE_LIMIT_EXCEEDED",
+      "status": 429
+    },
+    {
+      "code": "MONTHLY_LIMIT_REACHED",
+      "status": 429
+    },
+    {
+      "code": "INTERNAL_ERROR",
+      "status": 500
+    },
+    {
+      "code": "PRICING_ENGINE_UNAVAILABLE",
+      "status": 503
+    }
+  ],
+  "examples": {
+    "resolve": [
+      {
+        "name": "a contract customer: one product per scope it can use",
+        "request": {
+          "customer_id": "ACME-BUILD",
+          "products": [
+            {
+              "sku": "BOLT-10",
+              "quantity": 12
+            },
+            {
+              "sku": "PIPE-STD",
+              "quantity": 1
+            },
+            {
+              "sku": "WASHER-5",
+              "quantity": 3
+            },
+            {
+              "sku": "VLV-304",
+              "quantity": 120
+            },
+            {
+              "sku": "FAS-1001",
+              "quantity": 50
+            },
+            {
+              "sku": "PIPE-CU",
+              "quantity": 2
+            },
+            {
+              "sku": "TAPE-1",
+              "quantity": 1
+            }
+          ],
+          "mode": "business",
+          "as_of": "2026-11-02"
+        },
+        "status": 200,
+        "response": {
+          "mode": "business",
+          "as_of": "2026-11-02",
+          "time_zone": "UTC",
+          "success": true,
+          "data": {
+            "customer": {
+              "id": "ACME-BUILD",
+              "found": true,
+              "group": "CONTRACTORS"
+            },
+            "warnings": [],
+            "items": [
+              {
+                "sku": "BOLT-10",
+                "product_group": null,
+                "base_price": 10,
+                "quantity": 12,
+                "final_price": 8,
+                "applied_rule": {
+                  "id": "rule-1-acme-bolt",
+                  "name": "Acme bolt contract",
+                  "type": "fixed",
+                  "value": 8,
+                  "constraints": {
+                    "minimum_quantity": 10,
+                    "valid_from": "2026-01-01",
+                    "valid_to": "2026-12-31"
+                  },
+                  "target": {
+                    "customer": {
+                      "type": "customer",
+                      "code": "ACME-BUILD"
+                    },
+                    "product": {
+                      "type": "sku",
+                      "code": "BOLT-10"
+                    }
+                  }
+                },
+                "match_reason": "MOST_SPECIFIC_RULE",
+                "pricing_summary": {
+                  "savings": 2,
+                  "message": "Customer saved 2.00 due to active pricing rules"
+                }
+              },
+              {
+                "sku": "PIPE-STD",
+                "product_group": null,
+                "base_price": 20,
+                "quantity": 1,
+                "final_price": 18,
+                "applied_rule": {
+                  "id": "rule-2-contractor-pipe",
+                  "name": "Contractor pipe discount",
+                  "type": "discount",
+                  "value": 10,
+                  "constraints": {
+                    "minimum_quantity": null,
+                    "valid_from": null,
+                    "valid_to": null
+                  },
+                  "target": {
+                    "customer": {
+                      "type": "customer_group",
+                      "code": "CONTRACTORS"
+                    },
+                    "product": {
+                      "type": "sku",
+                      "code": "PIPE-STD"
+                    }
+                  }
+                },
+                "match_reason": "CUSTOMER_GROUP_SKU_RULE",
+                "pricing_summary": {
+                  "savings": 2,
+                  "message": "Customer saved 2.00 due to active pricing rules"
+                }
+              },
+              {
+                "sku": "WASHER-5",
+                "product_group": null,
+                "base_price": 4,
+                "quantity": 3,
+                "final_price": 2.5,
+                "applied_rule": {
+                  "id": "rule-3-washer-promo",
+                  "name": "Washer promo",
+                  "type": "amount_off",
+                  "value": 1.5,
+                  "constraints": {
+                    "minimum_quantity": null,
+                    "valid_from": null,
+                    "valid_to": null
+                  },
+                  "target": {
+                    "customer": {
+                      "type": "everyone",
+                      "code": null
+                    },
+                    "product": {
+                      "type": "sku",
+                      "code": "WASHER-5"
+                    }
+                  }
+                },
+                "match_reason": "SKU_LEVEL_RULE",
+                "pricing_summary": {
+                  "savings": 1.5,
+                  "message": "Customer saved 1.50 due to active pricing rules"
+                }
+              },
+              {
+                "sku": "VLV-304",
+                "product_group": "VALVES",
+                "base_price": 48,
+                "quantity": 120,
+                "final_price": 40,
+                "applied_rule": {
+                  "id": "rule-4-acme-valves",
+                  "name": "Acme valve price",
+                  "type": "fixed",
+                  "value": 40,
+                  "constraints": {
+                    "minimum_quantity": null,
+                    "valid_from": null,
+                    "valid_to": null
+                  },
+                  "target": {
+                    "customer": {
+                      "type": "customer",
+                      "code": "ACME-BUILD"
+                    },
+                    "product": {
+                      "type": "product_group",
+                      "code": "VALVES"
+                    }
+                  }
+                },
+                "match_reason": "CUSTOMER_PRODUCT_GROUP_RULE",
+                "pricing_summary": {
+                  "savings": 8,
+                  "message": "Customer saved 8.00 due to active pricing rules"
+                }
+              },
+              {
+                "sku": "FAS-1001",
+                "product_group": "FASTENERS",
+                "base_price": 12,
+                "quantity": 50,
+                "final_price": 10.2,
+                "applied_rule": {
+                  "id": "rule-5-contractor-fasteners",
+                  "name": "Contractor fastener price",
+                  "type": "discount",
+                  "value": 15,
+                  "constraints": {
+                    "minimum_quantity": null,
+                    "valid_from": null,
+                    "valid_to": null
+                  },
+                  "target": {
+                    "customer": {
+                      "type": "customer_group",
+                      "code": "CONTRACTORS"
+                    },
+                    "product": {
+                      "type": "product_group",
+                      "code": "FASTENERS"
+                    }
+                  }
+                },
+                "match_reason": "CUSTOMER_GROUP_PRODUCT_GROUP_RULE",
+                "pricing_summary": {
+                  "savings": 1.8,
+                  "message": "Customer saved 1.80 due to active pricing rules"
+                }
+              },
+              {
+                "sku": "PIPE-CU",
+                "product_group": "PIPES",
+                "base_price": 30,
+                "quantity": 2,
+                "final_price": 28.5,
+                "applied_rule": {
+                  "id": "rule-6-pipe-sale",
+                  "name": "Pipe sale",
+                  "type": "discount",
+                  "value": 5,
+                  "constraints": {
+                    "minimum_quantity": null,
+                    "valid_from": null,
+                    "valid_to": null
+                  },
+                  "target": {
+                    "customer": {
+                      "type": "everyone",
+                      "code": null
+                    },
+                    "product": {
+                      "type": "product_group",
+                      "code": "PIPES"
+                    }
+                  }
+                },
+                "match_reason": "PRODUCT_GROUP_RULE",
+                "pricing_summary": {
+                  "savings": 1.5,
+                  "message": "Customer saved 1.50 due to active pricing rules"
+                }
+              },
+              {
+                "sku": "TAPE-1",
+                "product_group": null,
+                "base_price": 3,
+                "quantity": 1,
+                "final_price": 2.91,
+                "applied_rule": {
+                  "id": "rule-7-acme-account",
+                  "name": "Acme account discount",
+                  "type": "discount",
+                  "value": 3,
+                  "constraints": {
+                    "minimum_quantity": null,
+                    "valid_from": null,
+                    "valid_to": null
+                  },
+                  "target": {
+                    "customer": {
+                      "type": "customer",
+                      "code": "ACME-BUILD"
+                    },
+                    "product": {
+                      "type": "all",
+                      "code": null
+                    }
+                  }
+                },
+                "match_reason": "CUSTOMER_LEVEL_RULE",
+                "pricing_summary": {
+                  "savings": 0.09,
+                  "message": "Customer saved 0.09 due to active pricing rules"
+                }
+              }
+            ]
+          },
+          "billing": {
+            "limit": 500000,
+            "usage": 7,
+            "remaining": 499993
+          },
+          "meta": {
+            "request_id": "req_contract",
+            "processing_ms": 2.5
+          }
+        }
+      },
+      {
+        "name": "a customer group's rule for all products",
+        "request": {
+          "customer_id": "SHOP-42",
+          "products": [
+            {
+              "sku": "TAPE-1",
+              "quantity": 1
+            }
+          ],
+          "as_of": "2026-11-02"
+        },
+        "status": 200,
+        "response": {
+          "mode": "business",
+          "as_of": "2026-11-02",
+          "time_zone": "UTC",
+          "success": true,
+          "data": {
+            "customer": {
+              "id": "SHOP-42",
+              "found": true,
+              "group": "RETAIL"
+            },
+            "warnings": [],
+            "items": [
+              {
+                "sku": "TAPE-1",
+                "product_group": null,
+                "base_price": 3,
+                "quantity": 1,
+                "final_price": 2.94,
+                "applied_rule": {
+                  "id": "rule-8-retail",
+                  "name": "Retail discount",
+                  "type": "discount",
+                  "value": 2,
+                  "constraints": {
+                    "minimum_quantity": null,
+                    "valid_from": null,
+                    "valid_to": null
+                  },
+                  "target": {
+                    "customer": {
+                      "type": "customer_group",
+                      "code": "RETAIL"
+                    },
+                    "product": {
+                      "type": "all",
+                      "code": null
+                    }
+                  }
+                },
+                "match_reason": "CUSTOMER_GROUP_RULE",
+                "pricing_summary": {
+                  "savings": 0.06,
+                  "message": "Customer saved 0.06 due to active pricing rules"
+                }
+              }
+            ]
+          },
+          "billing": {
+            "limit": 500000,
+            "usage": 1,
+            "remaining": 499999
+          },
+          "meta": {
+            "request_id": "req_contract",
+            "processing_ms": 2.5
+          }
+        }
+      },
+      {
+        "name": "no customer: the rule for everyone, no rule, a skipped amount-off rule, an unknown product",
+        "request": {
+          "products": [
+            {
+              "sku": "TAPE-1",
+              "quantity": 10
+            },
+            {
+              "sku": "SEAL-9"
+            },
+            {
+              "sku": "GLUE-2",
+              "quantity": 1
+            },
+            {
+              "sku": "NOPE-404",
+              "quantity": 2
+            }
+          ],
+          "as_of": "2026-11-02"
+        },
+        "status": 200,
+        "response": {
+          "mode": "business",
+          "as_of": "2026-11-02",
+          "time_zone": "UTC",
+          "success": true,
+          "data": {
+            "customer": null,
+            "warnings": [],
+            "items": [
+              {
+                "sku": "TAPE-1",
+                "product_group": null,
+                "base_price": 3,
+                "quantity": 10,
+                "final_price": 2.97,
+                "applied_rule": {
+                  "id": "rule-9-volume",
+                  "name": "Volume discount",
+                  "type": "discount",
+                  "value": 1,
+                  "constraints": {
+                    "minimum_quantity": 10,
+                    "valid_from": null,
+                    "valid_to": null
+                  },
+                  "target": {
+                    "customer": {
+                      "type": "everyone",
+                      "code": null
+                    },
+                    "product": {
+                      "type": "all",
+                      "code": null
+                    }
+                  }
+                },
+                "match_reason": "DEFAULT_RULE",
+                "pricing_summary": {
+                  "savings": 0.03,
+                  "message": "Customer saved 0.03 due to active pricing rules"
+                }
+              },
+              {
+                "sku": "SEAL-9",
+                "product_group": null,
+                "base_price": 7,
+                "quantity": 1,
+                "final_price": 7,
+                "applied_rule": null,
+                "match_reason": "NO_RULE",
+                "pricing_summary": {
+                  "savings": 0,
+                  "message": "No pricing rules applied"
+                }
+              },
+              {
+                "sku": "GLUE-2",
+                "product_group": null,
+                "base_price": 5,
+                "quantity": 1,
+                "final_price": 5,
+                "applied_rule": null,
+                "match_reason": "RULE_EXCEEDS_BASE_PRICE",
+                "skipped_rules": [
+                  {
+                    "id": "rule-glue-clearance",
+                    "name": "Glue clearance",
+                    "type": "amount_off",
+                    "value": 6,
+                    "constraints": {
+                      "minimum_quantity": null,
+                      "valid_from": null,
+                      "valid_to": null
+                    },
+                    "reason": "AMOUNT_EXCEEDS_BASE_PRICE",
+                    "target": {
+                      "customer": {
+                        "type": "everyone",
+                        "code": null
+                      },
+                      "product": {
+                        "type": "sku",
+                        "code": "GLUE-2"
+                      }
+                    }
+                  }
+                ],
+                "pricing_summary": {
+                  "savings": 0,
+                  "message": "No pricing rules applied: the matching amount-off rule is not below the base price"
+                }
+              },
+              {
+                "sku": "NOPE-404",
+                "product_group": null,
+                "base_price": null,
+                "quantity": 2,
+                "final_price": null,
+                "applied_rule": null,
+                "match_reason": "PRODUCT_NOT_FOUND",
+                "pricing_summary": {
+                  "savings": 0,
+                  "message": "Product not found"
+                }
+              }
+            ]
+          },
+          "billing": {
+            "limit": 500000,
+            "usage": 4,
+            "remaining": 499996
+          },
+          "meta": {
+            "request_id": "req_contract",
+            "processing_ms": 2.5
+          }
+        }
+      },
+      {
+        "name": "an unknown customer: priced as anonymous, with a CUSTOMER_NOT_FOUND warning",
+        "request": {
+          "customer_id": "ACME-BUILDS",
+          "products": [
+            {
+              "sku": "TAPE-1",
+              "quantity": 1
+            }
+          ],
+          "as_of": "2026-11-02"
+        },
+        "status": 200,
+        "response": {
+          "mode": "business",
+          "as_of": "2026-11-02",
+          "time_zone": "UTC",
+          "success": true,
+          "data": {
+            "customer": {
+              "id": "ACME-BUILDS",
+              "found": false,
+              "group": null
+            },
+            "warnings": [
+              {
+                "code": "CUSTOMER_NOT_FOUND",
+                "message": "No active customer has the code \"ACME-BUILDS\". Priced as an anonymous customer: only rules for every customer applied."
+              }
+            ],
+            "items": [
+              {
+                "sku": "TAPE-1",
+                "product_group": null,
+                "base_price": 3,
+                "quantity": 1,
+                "final_price": 3,
+                "applied_rule": null,
+                "match_reason": "NO_RULE",
+                "pricing_summary": {
+                  "savings": 0,
+                  "message": "No pricing rules applied"
+                }
+              }
+            ]
+          },
+          "billing": {
+            "limit": 500000,
+            "usage": 1,
+            "remaining": 499999
+          },
+          "meta": {
+            "request_id": "req_contract",
+            "processing_ms": 2.5
+          }
+        }
+      },
+      {
+        "name": "best_price mode",
+        "request": {
+          "customer_id": "ACME-BUILD",
+          "products": [
+            {
+              "sku": "BOLT-10",
+              "quantity": 12
+            }
+          ],
+          "mode": "best_price",
+          "as_of": "2026-11-02"
+        },
+        "status": 200,
+        "response": {
+          "mode": "best_price",
+          "as_of": "2026-11-02",
+          "time_zone": "UTC",
+          "success": true,
+          "data": {
+            "customer": {
+              "id": "ACME-BUILD",
+              "found": true,
+              "group": "CONTRACTORS"
+            },
+            "warnings": [],
+            "items": [
+              {
+                "sku": "BOLT-10",
+                "product_group": null,
+                "base_price": 10,
+                "quantity": 12,
+                "final_price": 8,
+                "applied_rule": {
+                  "id": "rule-1-acme-bolt",
+                  "name": "Acme bolt contract",
+                  "type": "fixed",
+                  "value": 8,
+                  "constraints": {
+                    "minimum_quantity": 10,
+                    "valid_from": "2026-01-01",
+                    "valid_to": "2026-12-31"
+                  },
+                  "target": {
+                    "customer": {
+                      "type": "customer",
+                      "code": "ACME-BUILD"
+                    },
+                    "product": {
+                      "type": "sku",
+                      "code": "BOLT-10"
+                    }
+                  }
+                },
+                "match_reason": "LOWEST_PRICE_WINS",
+                "pricing_summary": {
+                  "savings": 2,
+                  "message": "Customer saved 2.00 due to active pricing rules"
+                }
+              }
+            ]
+          },
+          "billing": {
+            "limit": 500000,
+            "usage": 1,
+            "remaining": 499999
+          },
+          "meta": {
+            "request_id": "req_contract",
+            "processing_ms": 2.5
+          }
+        }
+      }
+    ],
+    "resolve_bulk": [
+      {
+        "name": "two customers in one call",
+        "request": {
+          "requests": [
+            {
+              "customer_id": "ACME-BUILD",
+              "products": [
+                {
+                  "sku": "VLV-304",
+                  "quantity": 120
+                },
+                {
+                  "sku": "FAS-1001",
+                  "quantity": 50
+                }
+              ]
+            },
+            {
+              "products": [
+                {
+                  "sku": "TAPE-1",
+                  "quantity": 10
+                }
+              ]
+            }
+          ],
+          "as_of": "2026-11-02"
+        },
+        "status": 200,
+        "response": {
+          "mode": "business",
+          "as_of": "2026-11-02",
+          "time_zone": "UTC",
+          "success": true,
+          "data": [
+            {
+              "customer": {
+                "id": "ACME-BUILD",
+                "found": true,
+                "group": "CONTRACTORS"
+              },
+              "warnings": [],
+              "items": [
+                {
+                  "sku": "VLV-304",
+                  "product_group": "VALVES",
+                  "base_price": 48,
+                  "quantity": 120,
+                  "final_price": 40,
+                  "applied_rule": {
+                    "id": "rule-4-acme-valves",
+                    "name": "Acme valve price",
+                    "type": "fixed",
+                    "value": 40,
+                    "constraints": {
+                      "minimum_quantity": null,
+                      "valid_from": null,
+                      "valid_to": null
+                    },
+                    "target": {
+                      "customer": {
+                        "type": "customer",
+                        "code": "ACME-BUILD"
+                      },
+                      "product": {
+                        "type": "product_group",
+                        "code": "VALVES"
+                      }
+                    }
+                  },
+                  "match_reason": "CUSTOMER_PRODUCT_GROUP_RULE",
+                  "pricing_summary": {
+                    "savings": 8,
+                    "message": "Customer saved 8.00 due to active pricing rules"
+                  }
+                },
+                {
+                  "sku": "FAS-1001",
+                  "product_group": "FASTENERS",
+                  "base_price": 12,
+                  "quantity": 50,
+                  "final_price": 10.2,
+                  "applied_rule": {
+                    "id": "rule-5-contractor-fasteners",
+                    "name": "Contractor fastener price",
+                    "type": "discount",
+                    "value": 15,
+                    "constraints": {
+                      "minimum_quantity": null,
+                      "valid_from": null,
+                      "valid_to": null
+                    },
+                    "target": {
+                      "customer": {
+                        "type": "customer_group",
+                        "code": "CONTRACTORS"
+                      },
+                      "product": {
+                        "type": "product_group",
+                        "code": "FASTENERS"
+                      }
+                    }
+                  },
+                  "match_reason": "CUSTOMER_GROUP_PRODUCT_GROUP_RULE",
+                  "pricing_summary": {
+                    "savings": 1.8,
+                    "message": "Customer saved 1.80 due to active pricing rules"
+                  }
+                }
+              ]
+            },
+            {
+              "customer": null,
+              "warnings": [],
+              "items": [
+                {
+                  "sku": "TAPE-1",
+                  "product_group": null,
+                  "base_price": 3,
+                  "quantity": 10,
+                  "final_price": 2.97,
+                  "applied_rule": {
+                    "id": "rule-9-volume",
+                    "name": "Volume discount",
+                    "type": "discount",
+                    "value": 1,
+                    "constraints": {
+                      "minimum_quantity": 10,
+                      "valid_from": null,
+                      "valid_to": null
+                    },
+                    "target": {
+                      "customer": {
+                        "type": "everyone",
+                        "code": null
+                      },
+                      "product": {
+                        "type": "all",
+                        "code": null
+                      }
+                    }
+                  },
+                  "match_reason": "DEFAULT_RULE",
+                  "pricing_summary": {
+                    "savings": 0.03,
+                    "message": "Customer saved 0.03 due to active pricing rules"
+                  }
+                }
+              ]
+            }
+          ],
+          "billing": {
+            "limit": 500000,
+            "usage": 3,
+            "remaining": 499997
+          },
+          "meta": {
+            "request_id": "req_contract",
+            "processing_ms": 2.5
+          }
+        }
+      }
+    ],
+    "errors": [
+      {
+        "name": "invalid JSON",
+        "status": 400,
+        "headers": {
+          "X-Request-Id": "req_contract"
+        },
+        "body": {
+          "success": false,
+          "error": {
+            "code": "INVALID_JSON",
+            "message": "The request body isn't valid JSON."
+          },
+          "meta": {
+            "request_id": "req_contract"
+          }
+        }
+      },
+      {
+        "name": "a validation error",
+        "status": 400,
+        "headers": {
+          "X-Request-Id": "req_contract"
+        },
+        "body": {
+          "success": false,
+          "error": {
+            "code": "VALIDATION_ERROR",
+            "message": "The request body doesn't match the expected format. See error.details.issues.",
+            "details": {
+              "issues": [
+                {
+                  "path": "products.0.quantity",
+                  "message": "Too small: expected number to be >=1"
+                }
+              ]
+            }
+          },
+          "meta": {
+            "request_id": "req_contract"
+          }
+        }
+      },
+      {
+        "name": "an unknown API key",
+        "status": 401,
+        "headers": {
+          "X-Request-Id": "req_contract"
+        },
+        "body": {
+          "success": false,
+          "error": {
+            "code": "UNAUTHORIZED",
+            "message": "Invalid or missing API key. Send it as Authorization: Bearer <key>."
+          },
+          "meta": {
+            "request_id": "req_contract"
+          }
+        }
+      },
+      {
+        "name": "too many products",
+        "status": 422,
+        "headers": {
+          "X-Request-Id": "req_contract"
+        },
+        "body": {
+          "success": false,
+          "error": {
+            "code": "MAX_PRODUCTS_EXCEEDED",
+            "message": "A request can price at most 500 products; this one has 501. Split it into smaller requests. Nothing was priced or counted.",
+            "details": {
+              "max_products": 500,
+              "received": 501
+            }
+          },
+          "meta": {
+            "request_id": "req_contract"
+          }
+        }
+      },
+      {
+        "name": "too many requests in a bulk call",
+        "status": 422,
+        "headers": {
+          "X-Request-Id": "req_contract"
+        },
+        "body": {
+          "success": false,
+          "error": {
+            "code": "MAX_REQUESTS_EXCEEDED",
+            "message": "A bulk request can carry at most 10 requests; this one has 11. Split it into smaller batches. Nothing was priced or counted.",
+            "details": {
+              "max_requests": 10,
+              "received": 11
+            }
+          },
+          "meta": {
+            "request_id": "req_contract"
+          }
+        }
+      },
+      {
+        "name": "the per-minute rate limit",
+        "status": 429,
+        "headers": {
+          "X-Request-Id": "req_contract",
+          "Retry-After": "30"
+        },
+        "body": {
+          "success": false,
+          "error": {
+            "code": "RATE_LIMIT_EXCEEDED",
+            "message": "Too many requests: this workspace can make 1,000 requests per minute. Retry after the time in the Retry-After header.",
+            "details": {
+              "requests_per_minute": 1000
+            }
+          },
+          "meta": {
+            "request_id": "req_contract"
+          }
+        }
+      },
+      {
+        "name": "the usage quota",
+        "status": 429,
+        "headers": {
+          "X-Request-Id": "req_contract"
+        },
+        "body": {
+          "success": false,
+          "error": {
+            "code": "MONTHLY_LIMIT_REACHED",
+            "message": "This workspace has used all 500,000 price resolutions of its current usage period. Upgrade the plan or wait for the next period.",
+            "details": {
+              "limit": 500000,
+              "usage": null,
+              "remaining": 0
+            }
+          },
+          "meta": {
+            "request_id": "req_contract"
+          }
+        }
+      },
+      {
+        "name": "an unexpected failure",
+        "status": 500,
+        "headers": {
+          "X-Request-Id": "req_contract"
+        },
+        "body": {
+          "success": false,
+          "error": {
+            "code": "INTERNAL_ERROR",
+            "message": "Something went wrong on our side. Please try again; if it keeps happening, contact support with the request id."
+          },
+          "meta": {
+            "request_id": "req_contract"
+          }
+        }
+      },
+      {
+        "name": "the pricing engine unavailable",
+        "status": 503,
+        "headers": {
+          "X-Request-Id": "req_contract"
+        },
+        "body": {
+          "success": false,
+          "error": {
+            "code": "PRICING_ENGINE_UNAVAILABLE",
+            "message": "The pricing engine is temporarily unavailable, so nothing was priced and nothing was counted toward usage. Retry in a few seconds."
+          },
+          "meta": {
+            "request_id": "req_contract"
+          }
+        }
+      }
+    ]
+  }
+}
