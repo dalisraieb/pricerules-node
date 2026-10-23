@@ -46,6 +46,16 @@ After an API change: in the app, `npm run contract:generate` and merge; here, `n
 
 1. Move the CHANGELOG's `## [x.y.z] - Unreleased` heading to today's date (add the link at the bottom).
 2. `npm version <patch|minor|major>` (bumps package.json, regenerates `src/version.ts`, commits, tags `vX.Y.Z`).
-3. `git push --follow-tags`. `.github/workflows/release.yml` checks the tag matches package.json and the CHANGELOG has the section, runs `npm run check`, publishes with provenance (`-` in the version → dist-tag `next`) and creates the GitHub release from the CHANGELOG section.
+3. `git push --follow-tags`. `.github/workflows/release.yml` checks the tag matches package.json and the CHANGELOG has the section, runs `npm run check`, **stages** the package with `npm stage publish --provenance` (`-` in the version → dist-tag `next`; the tag can't be changed after staging) and creates a **draft** GitHub release from the CHANGELOG section. The run's summary has the stage output.
+4. Approve with 2FA: npmjs.com → `pricerules` → Staged Packages → Approve, or `npm stage list pricerules` then `npm stage approve <stage-id>` (`npm stage download <stage-id>` to inspect the tarball first; `npm stage reject <stage-id>` to drop it). Only then is the version installable.
+5. Publish the draft GitHub release (`gh release edit vX.Y.Z --draft=false`).
 
-npm authentication is **trusted publishing** (OIDC, no token): on npmjs.com, package `pricerules` → Settings → Trusted publishing → GitHub Actions, repo `dalisraieb/pricerules-node`, workflow `release.yml`. A trusted publisher can only be added once the package exists, so the very first release (0.1.0) uses a token: create a granular access token on npmjs.com (read and write, package scope `pricerules` once it exists or "all packages" for the first publish, short expiry), save it as the repo secret `NPM_TOKEN`, tag `v0.1.0`; then configure trusted publishing, delete `NPM_TOKEN` (and the token on npm), and set the package's publishing access to "Require two-factor authentication and disallow tokens".
+Nobody publishes from a laptop: no `npm publish`, no npm token in CI or in `~/.npmrc`. npm authentication is **trusted publishing** (OIDC) with **stage-only** permissions, so CI can submit but never release, and only a maintainer's 2FA approval publishes. The workflow needs npm 11.15+ (installed in the job; Node 22 bundles npm 10) and Node 22.14+. Provenance requires the GitHub repo to be **public**.
+
+npmjs.com configuration (package `pricerules` → Settings):
+
+- **Trusted publishing** → GitHub Actions: organization or user `dalisraieb`, repository `pricerules-node`, workflow filename `release.yml`, environment empty; allowed actions: stage only (`npm publish` and `npm dist-tag` unchecked). A new trusted publisher expires if it isn't used within 2 days, so add it right before tagging, or re-add it if it lapsed.
+- **Publishing access** → "Require two-factor authentication and disallow tokens".
+- Account: 2FA enabled (required to approve); no granular or classic tokens with publish rights left (Access Tokens page).
+
+0.1.0 was the exception: it was staged by hand from a local machine under the maintainer's account (no provenance, `0.0.0-stage` placeholder, since deprecated), not by this workflow.

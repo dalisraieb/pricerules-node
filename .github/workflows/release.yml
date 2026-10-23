@@ -1,10 +1,12 @@
-# Publishes to npm with provenance when a version tag (v0.1.0, v0.2.0-beta.1…)
-# is pushed, then creates the GitHub release from the CHANGELOG section.
+# Stages the package on npm (with provenance) when a version tag (v0.2.0,
+# v0.3.0-beta.1…) is pushed, and drafts the GitHub release from the CHANGELOG
+# section. Nothing is installable until a maintainer approves the staged
+# version on npmjs.com (or `npm stage approve <id>`) with 2FA; then publish
+# the draft release.
 #
-# Authentication: npm trusted publishing (OIDC; configure it on npmjs.com for
-# this repo and workflow file). For the very first publish only, before the
-# package exists, an NPM_TOKEN secret can be used instead; delete it after.
-# See CLAUDE.md, "Releasing".
+# Authentication: npm trusted publishing (OIDC, no token), configured on
+# npmjs.com for this repo and workflow file with stage-only permissions, so
+# a plain `npm publish` from here is rejected. See CLAUDE.md, "Releasing".
 name: Release
 
 on:
@@ -15,6 +17,10 @@ permissions:
   contents: write # the GitHub release
   id-token: write # trusted publishing and the provenance statement
 
+concurrency:
+  group: release
+  cancel-in-progress: false
+
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -22,10 +28,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # No registry-url: it writes an .npmrc expecting NODE_AUTH_TOKEN, and
+      # there is no token; npm gets one from GitHub's OIDC instead.
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
-          registry-url: https://registry.npmjs.org
+          node-version: 22 # staging and trusted publishing need 22.14+
           cache: npm
 
       - name: The tag is package.json's version
@@ -51,21 +58,32 @@ jobs:
       - run: npm ci
       - run: npm run check
 
-      # Trusted publishing needs npm 11.5.1 or later.
-      - run: npm install -g npm@11
+      # `npm stage` needs npm 11.15.0 or later; Node 22 bundles npm 10.
+      - run: npm install -g "npm@^11.15.0" && npm --version
 
-      - name: Publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      # The tag is fixed at staging time and can't be changed on approval.
+      - name: Stage on npm
         run: |
+          set -o pipefail
           tag=latest
           case "$GITHUB_REF_NAME" in *-*) tag=next ;; esac
-          npm publish --provenance --access public --tag "$tag"
+          npm stage publish --provenance --access public --tag "$tag" 2>&1 | tee stage.log
+          {
+            echo "## ${GITHUB_REF_NAME} is staged on npm, not yet published"
+            echo
+            echo "Approve it with 2FA: npmjs.com → pricerules → Staged Packages → Approve,"
+            echo "or \`npm stage list pricerules\` then \`npm stage approve <stage-id>\`."
+            echo "Then publish the draft GitHub release."
+            echo
+            echo '```'
+            cat stage.log
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: GitHub release
+      - name: Draft GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           prerelease=""
           case "$GITHUB_REF_NAME" in *-*) prerelease="--prerelease" ;; esac
-          gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes-file release-notes.md $prerelease
+          gh release create "$GITHUB_REF_NAME" --draft --title "$GITHUB_REF_NAME" --notes-file release-notes.md $prerelease
