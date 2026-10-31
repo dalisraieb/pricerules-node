@@ -1049,13 +1049,38 @@
         "name": "the pricing engine unavailable",
         "status": 503,
         "headers": {
-          "X-Request-Id": "req_contract"
+          "X-Request-Id": "req_contract",
+          "Retry-After": "30"
         },
         "body": {
           "success": false,
           "error": {
             "code": "PRICING_ENGINE_UNAVAILABLE",
-            "message": "The pricing engine is temporarily unavailable, so nothing was priced and nothing was counted toward usage. Retry in a few seconds."
+            "message": "The pricing engine is temporarily unavailable, so nothing was priced and nothing was counted toward usage. Retry in a few seconds.",
+            "details": {
+              "reason": "cache_unreachable"
+            }
+          },
+          "meta": {
+            "request_id": "req_contract"
+          }
+        }
+      },
+      {
+        "name": "the pricing engine rebuilding the workspace's prices",
+        "status": 503,
+        "headers": {
+          "X-Request-Id": "req_contract",
+          "Retry-After": "30"
+        },
+        "body": {
+          "success": false,
+          "error": {
+            "code": "PRICING_ENGINE_UNAVAILABLE",
+            "message": "The pricing engine is rebuilding this workspace's prices, so nothing was priced and nothing was counted toward usage. Retry in a few seconds.",
+            "details": {
+              "reason": "cache_rebuilding"
+            }
           },
           "meta": {
             "request_id": "req_contract"

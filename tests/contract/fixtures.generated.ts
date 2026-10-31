@@ -825,7 +825,26 @@ export const errorResponses = [
             "success": false,
             "error": {
                 "code": "PRICING_ENGINE_UNAVAILABLE",
-                "message": "The pricing engine is temporarily unavailable, so nothing was priced and nothing was counted toward usage. Retry in a few seconds."
+                "message": "The pricing engine is temporarily unavailable, so nothing was priced and nothing was counted toward usage. Retry in a few seconds.",
+                "details": {
+                    "reason": "cache_unreachable"
+                }
+            },
+            "meta": {
+                "request_id": "req_contract"
+            }
+        } satisfies ErrorResponse,
+    },
+    {
+        name: "the pricing engine rebuilding the workspace's prices",
+        value: {
+            "success": false,
+            "error": {
+                "code": "PRICING_ENGINE_UNAVAILABLE",
+                "message": "The pricing engine is rebuilding this workspace's prices, so nothing was priced and nothing was counted toward usage. Retry in a few seconds.",
+                "details": {
+                    "reason": "cache_rebuilding"
+                }
             },
             "meta": {
                 "request_id": "req_contract"
