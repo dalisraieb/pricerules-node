@@ -175,7 +175,8 @@ export type PricedItem = {
     quantity: number;
     /**
      * The unit price after the winning rule, rounded once, half-up: 2 decimals,
-     * or 4 when base_price or the rule's value has more than 2 (sub-cent prices).
+     * or 4 when base_price or the winning rule's fixed price / amount off has
+     * more than 2 (sub-cent prices; a discount's percentage never counts).
      * 19.90 at 8% off is 18.31; 0.0125 at 8% off is 0.0115.
      * https://pricerules.app/docs/api-reference#rounding
      */

@@ -6,7 +6,7 @@ All notable changes to the `pricerules` package. The format follows [Keep a Chan
 
 ### Changed
 
-- Documented how the API rounds prices: `final_price` is rounded once, half-up, to 2 decimals, or 4 when `base_price` or the rule's value has more than 2 (19.90 at 8% off is 18.31; 0.0125 at 8% off is 0.0115). `applied_rule.value` and `base_price` keep their stored precision (up to 4 decimals), and `pricing_summary.savings` is worked out from the rounded `final_price`. Types are unchanged.
+- Documented how the API rounds prices: `final_price` is rounded once, half-up, to 2 decimals, or 4 when `base_price` or the winning rule's fixed price / amount off has more than 2; a discount's percentage never counts (19.90 at 8% off is 18.31; 0.0125 at 8% off is 0.0115; 12.345% off 19.90 is 17.44). `applied_rule.value` and `base_price` keep their stored precision (up to 4 decimals), and `pricing_summary.savings` is worked out from the rounded `final_price`. Types are unchanged.
 
 ## [0.1.0] - 2026-10-22
 
