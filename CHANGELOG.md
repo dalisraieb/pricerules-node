@@ -2,6 +2,12 @@
 
 All notable changes to the `pricerules` package. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.1.1] - 2026-11-27
+
+### Changed
+
+- Documented how the API rounds prices: `final_price` is rounded once, half-up, to 2 decimals, or 4 when `base_price` or the rule's value has more than 2 (19.90 at 8% off is 18.31; 0.0125 at 8% off is 0.0115). `applied_rule.value` and `base_price` keep their stored precision (up to 4 decimals), and `pricing_summary.savings` is worked out from the rounded `final_price`. Types are unchanged.
+
 ## [0.1.0] - 2026-10-22
 
 ### Added
@@ -15,4 +21,5 @@ All notable changes to the `pricerules` package. The format follows [Keep a Chan
 - `User-Agent: pricerules-node/<version> (<runtime>)`.
 - ESM and CommonJS builds with type declarations; no runtime dependencies.
 
+[0.1.1]: https://github.com/dalisraieb/pricerules-node/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/dalisraieb/pricerules-node/releases/tag/v0.1.0

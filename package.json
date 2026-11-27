@@ -1,6 +1,6 @@
 {
   "name": "pricerules",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Official TypeScript SDK for the PriceRules API: resolve customer-specific prices from your server.",
   "license": "MIT",
   "author": "PriceRules",

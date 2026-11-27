@@ -149,6 +149,7 @@ export type AppliedRule = {
     id: string;
     name: string | null;
     type: RuleType;
+    /** The rule's value as stored (up to 4 decimals): the price for fixed, the percentage for discount, the amount for amount_off. */
     value: number;
     constraints: RuleConstraints;
     target: RuleTarget;
@@ -160,7 +161,7 @@ export type SkippedRule = AppliedRule & {
 };
 
 export type PricingSummary = {
-    /** base_price − final_price per unit, rounded to cents; 0 when the product wasn't found. */
+    /** base_price − the rounded final_price, per unit, at the same precision; 0 when the product wasn't found. */
     savings: number;
     message: string;
 };
@@ -169,8 +170,15 @@ export type PricingSummary = {
 export type PricedItem = {
     sku: string;
     product_group: string | null;
+    /** The product's list price, as stored (up to 4 decimals). */
     base_price: number;
     quantity: number;
+    /**
+     * The unit price after the winning rule, rounded once, half-up: 2 decimals,
+     * or 4 when base_price or the rule's value has more than 2 (sub-cent prices).
+     * 19.90 at 8% off is 18.31; 0.0125 at 8% off is 0.0115.
+     * https://pricerules.app/docs/api-reference#rounding
+     */
     final_price: number;
     applied_rule: AppliedRule | null;
     match_reason: Exclude<MatchReason, "PRODUCT_NOT_FOUND">;
