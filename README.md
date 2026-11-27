@@ -78,7 +78,7 @@ const item = res.data.items[0];
 if (item.match_reason === "PRODUCT_NOT_FOUND") {
   // the SKU isn't in your workspace: base_price and final_price are null
 } else {
-  item.final_price;               // number
+  item.final_price;               // number: rounded half-up to 2 decimals (4 for sub-cent prices)
   item.applied_rule?.name;        // the rule that set the price, or null
   item.applied_rule?.target;      // who and what the rule was for
   item.applied_rule?.constraints; // minimum_quantity, valid_from, valid_to
